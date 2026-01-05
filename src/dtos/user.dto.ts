@@ -1,13 +1,13 @@
 import z from 'zod';
 import { UserSchema } from '../types/user.type';
 
-export const CreateUserDto = UserSchema.pick (
-    {
-        name: true,
-        email: true,
-        password: true,
-    }
-). extend ( 
+export const CreateUserDTO = z.object({
+    name: z.string().min(2, "Full name is required"),
+    email: z.string().email("Invalid email format"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string().min(6, "Confirm password is required"),
+    role: z.enum(["user", "admin"]).optional().default("user")
+}). extend ( 
     {
         confirmPassword: z.string().min(6),
     }
@@ -20,11 +20,11 @@ export const CreateUserDto = UserSchema.pick (
         }
     
 );
-export type createUserDto = z.infer<typeof CreateUserDto>;
+export type createUserDto = z.infer<typeof CreateUserDTO>;
 
 
 export const LoginUserDto = z.object({
-    name: z.string().min(3),
+    email: z.string().min(6),
     password: z.string().min(6),
 })
 export type LoginUserDto = z.infer<typeof LoginUserDto>
