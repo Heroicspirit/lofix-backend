@@ -4,10 +4,10 @@ import bcryptjs from "bcryptjs";
 import { HttpError } from "../errors/http-error";
 import  jwt  from "jsonwebtoken";
 import { JWT_SECRET } from "../config";
-import { email } from "zod";
 
 
-let userRepository = new UserRepository();
+
+const userRepository = new UserRepository();
 
 export class UserService {
     async registerUser(data: createUserDto) {
@@ -37,5 +37,28 @@ export class UserService {
         };
         const token = jwt.sign(payload, JWT_SECRET, {expiresIn: '30d'});
         return { token, existingUser}
+    }
+
+    async updateUserProfile(userId: string, updateData: any) {
+        // Find user by ID
+        const user = await userRepository.getUserById(userId);
+        if (!user) {
+            throw new HttpError(404, "User not found");
+        }
+
+        // Update user with new data
+        const updatedUser = await userRepository.updateOneUser(userId, updateData);
+        return updatedUser;
+    }
+
+    /**
+     * Get User by ID
+     */
+    async getUserById(userId: string) {
+        const user = await userRepository.getUserById(userId);
+        if (!user) {
+            throw new HttpError(404, "User not found");
+        }
+        return user;
     }
 }
