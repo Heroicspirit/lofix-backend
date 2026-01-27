@@ -28,3 +28,12 @@ export const LoginUserDto = z.object({
     password: z.string().min(6),
 })
 export type LoginUserDto = z.infer<typeof LoginUserDto>
+
+export const UpdateUserDto = z.object({
+    fullName: z.string().min(2, "Full name is required").optional(),
+    username: z.string().min(2, "Username is required").optional(),
+    profilePicture: z.string().optional().nullable(),
+    imageUrl: z.string().optional()
+});
+
+export type UpdateUserDto = z.infer<typeof UpdateUserDto>;

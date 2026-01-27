@@ -1,4 +1,4 @@
-import { CreateUserDTO, LoginUserDto } from "../dtos/user.dto";
+import { CreateUserDTO, LoginUserDto, UpdateUserDto } from "../dtos/user.dto";
 import { UserService } from "../services/user.service";
 import { Request, Response } from "express";
 import z, { json, success } from "zod";
@@ -39,6 +39,41 @@ export class AuthController{
                 return res.status(error.statusCode || 500).json(
                     {success: false, message:error.message || "Internet Server Error"}
                 );
+        }
+    }
+
+    
+    updateProfile = async (req: Request, res: Response) => {
+        try {
+            const userId = (req as any).user?.id;
+            if (!userId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "User Id Not found"
+                });
+            }
+            const parsedData = UpdateUserDto.safeParse(req.body);
+            if (!parsedData.success) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Validation Error",
+                    errors: parsedData.error.flatten().fieldErrors
+                });
+            }
+            if (req.file) {
+                parsedData.data.profilePicture = req.file.filename;
+            }
+            const updatedUser = await userService.updateUser(userId, parsedData.data);
+            return res.status(200).json({
+                success: true,
+                data: updatedUser,
+                message: "User profile updated successfully"
+            });
+        } catch (error: any) {
+            return res.status(error.statusCode || 500).json({
+                success: false,
+                message: error.message || "Internal Server Error"
+            });
         }
     }
 }
