@@ -52,6 +52,7 @@ export class AuthController{
                     message: "User Id Not found"
                 });
             }
+
             const parsedData = UpdateUserDto.safeParse(req.body);
             if (!parsedData.success) {
                 return res.status(400).json({
@@ -60,14 +61,51 @@ export class AuthController{
                     errors: parsedData.error.flatten().fieldErrors
                 });
             }
+
+            // If a file was uploaded by Multer
             if (req.file) {
                 parsedData.data.profilePicture = req.file.filename;
             }
+
             const updatedUser = await userService.updateUser(userId, parsedData.data);
+
+            // FIX: Null check to satisfy TypeScript and handle missing users
+            if (!updatedUser) {
+                return res.status(404).json({
+                    success: false,
+                    message: "User not found or update failed"
+                });
+            }
+
             return res.status(200).json({
                 success: true,
                 data: updatedUser,
+                // Now safe to access because of the null check above
+                filename: req.file ? req.file.filename : updatedUser.profilePicture,
                 message: "User profile updated successfully"
+            });
+        } catch (error: any) {
+            return res.status(error.statusCode || 500).json({
+                success: false,
+                message: error.message || "Internal Server Error"
+            });
+        }
+    }
+
+    getProfile = async (req: Request, res: Response) => {
+        try {
+            const userId = (req as any).user?.id;
+            if (!userId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "User Id Not found"
+                });
+            }
+            const user = await userService.getUserById(userId);
+            return res.status(200).json({
+                success: true,
+                data: user,
+                message: "Profile retrieved successfully"
             });
         } catch (error: any) {
             return res.status(error.statusCode || 500).json({

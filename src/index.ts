@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { PORT } from './config'
 import { connectDatabase } from './database/mongodb';
 import cors from 'cors';
+import path from 'path';
 
 
 dotenv.config();
@@ -25,6 +26,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/api/auth',authRouter);
+app.use('/public/profile_pictures', express.static(path.join(process.cwd(), 'public', 'profile_pictures')));
+
 app.get('/', (req: Request, res: Response) => {
     return res.status(200).json({ success: "true", message: "Welcome to the API" });
 });

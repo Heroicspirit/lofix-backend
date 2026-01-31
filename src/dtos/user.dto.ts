@@ -30,9 +30,8 @@ export const LoginUserDto = z.object({
 export type LoginUserDto = z.infer<typeof LoginUserDto>
 
 export const UpdateUserDto = z.object({
-    fullName: z.string().min(2, "Full name is required").optional(),
-    username: z.string().min(2, "Username is required").optional(),
-    profilePicture: z.string().optional().nullable(),
+    name: z.string().min(2, "Full name is required").optional(),
+    profilePicture: z.string().optional(),
     imageUrl: z.string().optional()
 });
 
