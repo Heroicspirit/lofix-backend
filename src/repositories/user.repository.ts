@@ -23,8 +23,7 @@ export class UserRepository implements IUserRepository {
         return user;
     }
     async getUserById(id: string): Promise<IUser | null> {
-
-        const user = await UserModel.findOne();
+        const user = await UserModel.findById(id);
         return user;
     }
     async getAllUsers(): Promise<IUser[]> {

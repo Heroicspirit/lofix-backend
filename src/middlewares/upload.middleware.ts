@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 
 
 const maxSize = 2 * 1024 * 1024; // 2MB
-const PROFILE_UPLOAD_DIR = path.join(process.cwd(), "public", "profile_pictures");
+const PROFILE_UPLOAD_DIR = path.join(process.cwd(), "upload");
 
 
 
