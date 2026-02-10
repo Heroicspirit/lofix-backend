@@ -11,7 +11,6 @@ export class AdminUserService {
         if(emailCheck){
             throw new HttpError(403, "Email already in use");
         }
-        // hash password
         const hashedPassword = await bcryptjs.hash(data.password, 10); // 10 - complexity
         data.password = hashedPassword;
 
