@@ -2,16 +2,16 @@ module.exports = {
     preset: 'ts-jest',
     testEnvironment: 'node',
     roots: ['<rootDir>/src'],
-    testMatch: ['**/__tests__/**/*.test.ts'],
+    testMatch: ['**/_tests_/**/*.test.ts'],
     collectCoverageFrom: [
         'src/**/*.ts',
         '!src/**/*.d.ts',
         '!src/index.ts',
         '!src/app.ts',
-        '!src/__tests__/**',
+        '!src/_tests_/**',
     ],
-    setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
+    setupFilesAfterEnv: ['<rootDir>/src/_tests_/setup.ts'],
     moduleNameMapper: {
-        "^uuid$": "<rootDir>/src/__tests__/__mocks__/uuid.js",
+        "^uuid$": "<rootDir>/src/_tests_/_mocks_/uuid.js",
     },
 };

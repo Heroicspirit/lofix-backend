@@ -17,16 +17,14 @@ describe('User Repository Unit Tests', () => {
     });
     test('should create a new user', async () => {
         const userData = {
-            username: 'testuser',
+            name: 'testuser',
             email: 'test@example.com',
             password: 'Password123!',
-            firstName: 'Test',
-            lastName: 'User'
         };
 
-        const newUser = await userRepository.createUser(userData);
+        const newUser = await userRepository.createdUser(userData);
         expect(newUser).toBeDefined();
-        expect(newUser.username).toBe(userData.username);
+        expect(newUser.name).toBe(userData.name);
         expect(newUser.email).toBe(userData.email);
     });
 });

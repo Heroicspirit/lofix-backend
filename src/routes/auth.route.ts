@@ -10,5 +10,7 @@ router.post("/register", authController.register);
 router.post("/login",authController.login);
 router.get("/profile", authorizedMiddleware, authController.getProfile.bind(authController));
 router.put("/update-profile", authorizedMiddleware, uploadProfilePicture.single("profilePicture"), authController.updateProfile);
+router.post("/request-password-reset", authController.sendResetPasswordEmail);
+router.post("/reset-password/:token", authController.resetPassword);
 
 export default router;
