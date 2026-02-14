@@ -17,18 +17,6 @@ export const CreateUserDTO = z.object({
         path: ["confirmPassword"],
     }
 ).transform((data) => {
-    // If firstName and lastName are provided, combine them into name
-    // if (data.name && data.lastName) {
-    //     return {
-    //         ...data,
-    //         name: `${data.firstName} ${data.lastName}`
-    //     };
-    // }
-    // // If only name is provided, use it as is
-    // if (data.name) {
-    //     return data;
-    // }
-    // If only firstName is provided, use it as name
     if (data.name) {
         return {
             ...data,
@@ -48,8 +36,10 @@ export type LoginUserDto = z.infer<typeof LoginUserDto>
 
 export const UpdateUserDto = z.object({
     name: z.string().min(2, "Full name is required").optional(),
-    profilePicture: z.string().optional(),
-    imageUrl: z.string().optional()
+    email: z.string().email("Invalid email format").optional(),
+    password: z.string().min(6, "Password must be at least 6 characters").optional(),
+    profilePicture: z.string().optional()
+    // imageUrl: z.string().optional()
 });
 
 export type UpdateUserDto = z.infer<typeof UpdateUserDto>;

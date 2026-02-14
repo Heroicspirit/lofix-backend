@@ -11,7 +11,6 @@ export class AdminUserService {
         if(emailCheck){
             throw new HttpError(403, "Email already in use");
         }
-        // hash password
         const hashedPassword = await bcryptjs.hash(data.password, 10); // 10 - complexity
         data.password = hashedPassword;
 
@@ -19,10 +18,34 @@ export class AdminUserService {
         return newUser;
     }
 
-    async getAllUsers(){
-        const users = await userRepository.getAllUsers();
-        return users;
+    async getAllUsers(
+        page?: string, size?: string, search?: string
+    ){
+        const pageNumber = page ? parseInt(page) : 1;
+        const pageSize = size ? parseInt(size) : 10;
+        const {user, total} = await userRepository.getAllUsers(
+            pageNumber, pageSize, search
+        );
+        const pagination = {
+            page: pageNumber,
+            size: pageSize,
+            totalItems: total,
+            totalPages: Math.ceil(total / pageSize)
+        }
+        
+        //transform/map data if needed
+        return {user, pagination};
     }
+
+    async updateOneUser(id:string, data: any){
+        const user = await userRepository.updateOneUser(id, data);
+        return user;
+    }
+    async deleteOneUser(id:string ){
+        const user = await userRepository.deleteOneUser(id);
+        return user;
+    }
+
 
     async deleteUser(id: string){
         const user = await userRepository.getUserById(id);

@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 
 
 const maxSize = 2 * 1024 * 1024; // 2MB
-const PROFILE_UPLOAD_DIR = path.join(process.cwd(), "upload");
+const PROFILE_UPLOAD_DIR = path.join(process.cwd(), "/upload");
 
 
 
@@ -16,7 +16,7 @@ if (!fs.existsSync(PROFILE_UPLOAD_DIR)) {
 
 const storage = multer.diskStorage({
   destination: (req: Request, file: Express.Multer.File, cb) => {
-    if (file.fieldname === "profilePicture") {
+    if (file.fieldname === "profilePicture" || file.fieldname === "image") {
       cb(null, PROFILE_UPLOAD_DIR);
     } else {
       cb(new Error("Invalid field name for upload."), "");
@@ -35,7 +35,7 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ) => {
-  if (file.fieldname !== "profilePicture") {
+  if (file.fieldname !== "profilePicture" && file.fieldname !== "image") {
     return cb(new Error("Invalid field name for upload."));
   }
 

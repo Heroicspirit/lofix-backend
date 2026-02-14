@@ -19,7 +19,7 @@ export class AdminUserController {
                 )
             }
             if(req.file){
-                parsedData.data.profilePicture = `/uploads/${req.file.filename}`;
+                parsedData.data.profilePicture = `/upload/${req.file.filename}`;
             }
             const userData: createUserDto = parsedData.data;
             console.log('Processed user data:', userData);
@@ -102,7 +102,7 @@ export class AdminUserController {
             }
             
             if(req.file){   
-                parsedData.data.profilePicture = `/uploads/${req.file.filename}`;
+                parsedData.data.profilePicture = `/upload/${req.file.filename}`;
             }
             const updateData: UpdateUserDto = parsedData.data;
             const updatedUser = await adminUserService.updateUser(userId, updateData);
