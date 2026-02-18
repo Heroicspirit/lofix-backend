@@ -26,6 +26,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/api/auth',authRouter);
 app.use('/api/admin/users',adminRouter);
 app.use('/upload', express.static(path.join(process.cwd(), 'upload')));
+app.use('/images', express.static(path.join(process.cwd(), 'public')));
+app.use('/search', authRouter);
 
 app.get('/', (req: Request, res: Response) => {
     return res.status(200).json({ success: "true", message: "Welcome to the API" });

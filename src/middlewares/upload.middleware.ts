@@ -16,10 +16,12 @@ if (!fs.existsSync(PROFILE_UPLOAD_DIR)) {
 
 const storage = multer.diskStorage({
   destination: (req: Request, file: Express.Multer.File, cb) => {
-    if (file.fieldname === "profilePicture" || file.fieldname === "image") {
+    const allowedFieldNames = ["profilePicture", "image", "avatar", "photo", "file"];
+    
+    if (allowedFieldNames.includes(file.fieldname)) {
       cb(null, PROFILE_UPLOAD_DIR);
     } else {
-      cb(new Error("Invalid field name for upload."), "");
+      cb(new Error(`Invalid field name for upload. Expected one of: ${allowedFieldNames.join(', ')}, got: ${file.fieldname}`), "");
     }
   },
 
@@ -35,8 +37,10 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ) => {
-  if (file.fieldname !== "profilePicture" && file.fieldname !== "image") {
-    return cb(new Error("Invalid field name for upload."));
+  const allowedFieldNames = ["profilePicture", "image", "avatar", "photo", "file"];
+  
+  if (!allowedFieldNames.includes(file.fieldname)) {
+    return cb(new Error(`Invalid field name for upload. Expected one of: ${allowedFieldNames.join(', ')}, got: ${file.fieldname}`));
   }
 
   // 1. MIME type check
@@ -44,10 +48,6 @@ const fileFilter = (
     return cb(new Error("Only image files are allowed."));
   }
 
-  // // 2. Extension check
-  // if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-  //   return cb(new Error("Image format not supported."));
-  // }
 
   cb(null, true);
 };
@@ -59,5 +59,5 @@ export const uploadProfilePicture = multer({
 });
 
 
-export const uploadImage = uploadProfilePicture;
+
 export const upload = uploadProfilePicture;
