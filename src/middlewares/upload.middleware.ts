@@ -4,9 +4,10 @@ import fs from "fs";
 import { Request } from "express";
 import { v4 as uuidv4 } from "uuid";
 
-const maxSize = 10 * 1024 * 1024; // 10MB for audio files
+const maxSize = 50 * 1024 * 1024; // 50MB for audio files (increased from 10MB)
 const PROFILE_UPLOAD_DIR = path.join(process.cwd(), "/upload");
 const SONGS_UPLOAD_DIR = path.join(process.cwd(), "/upload/songs");
+const IMAGES_UPLOAD_DIR = path.join(process.cwd(), "/upload/images");
 
 // Create directories if they don't exist
 if (!fs.existsSync(PROFILE_UPLOAD_DIR)) {
@@ -15,15 +16,22 @@ if (!fs.existsSync(PROFILE_UPLOAD_DIR)) {
 if (!fs.existsSync(SONGS_UPLOAD_DIR)) {
   fs.mkdirSync(SONGS_UPLOAD_DIR, { recursive: true });
 }
+if (!fs.existsSync(IMAGES_UPLOAD_DIR)) {
+  fs.mkdirSync(IMAGES_UPLOAD_DIR, { recursive: true });
+}
 
 // Combined storage for both images and audio
 const combinedStorage = multer.diskStorage({
   destination: (req: Request, file: Express.Multer.File, cb) => {
-    const imageFields = ["profilePicture", "image", "avatar", "photo", "coverImage"];
+    const imageFields = ["profilePicture", "image", "photo", "coverImage"];
     const audioFields = ["audioFile", "song", "audio"];
     
     if (imageFields.includes(file.fieldname)) {
-      cb(null, PROFILE_UPLOAD_DIR);
+      if (file.fieldname === "coverImage") {
+        cb(null, IMAGES_UPLOAD_DIR);
+      } else {
+        cb(null, PROFILE_UPLOAD_DIR);
+      }
     } else if (audioFields.includes(file.fieldname)) {
       cb(null, SONGS_UPLOAD_DIR);
     } else {
@@ -88,13 +96,19 @@ const combinedFileFilter = (
 export const uploadProfilePicture = multer({
   storage: combinedStorage,
   fileFilter: combinedFileFilter,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB for images
+  limits: { fileSize: 50 * 1024 * 1024 }, // 5MB for images (increased from 2MB)
 });
 
 export const uploadSongFiles = multer({
   storage: combinedStorage,
   fileFilter: combinedFileFilter,
   limits: { fileSize: maxSize }, // 10MB for audio, 2MB for images
+});
+
+export const uploadAlbumFiles = multer({
+  storage: combinedStorage,
+  fileFilter: combinedFileFilter,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB for album cover images
 });
 
 // Default export (backward compatibility)

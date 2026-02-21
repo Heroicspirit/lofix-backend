@@ -14,10 +14,12 @@ export class SongController {
    */
   async uploadSong(req: Request, res: Response) {
     try {
+      console.log("=== SONG UPLOAD START ===");
       const { title, artist, album, genre, duration } = req.body;
       
       // Check if files were uploaded
       if (!req.files || !(req.files as MulterFiles).audioFile) {
+        console.log("ERROR: No audio file received");
         return res.status(400).json({ 
           success: false, 
           message: "Audio file is required" 
@@ -27,6 +29,11 @@ export class SongController {
       const files = req.files as MulterFiles;
       const audioFile = files.audioFile[0];
       const coverFile = files.coverImage ? files.coverImage[0] : null;
+
+      console.log("Upload files received:");
+      console.log("- Audio file:", audioFile?.filename);
+      console.log("- Audio file size:", audioFile?.size);
+      console.log("=== SONG UPLOAD PROCESSING ===");
 
       // Find or create artist
       let artistDoc = await ArtistModel.findOne({ name: artist });
@@ -44,12 +51,39 @@ export class SongController {
         artist: artistDoc._id,
         album: album || "Single",
         duration: parseInt(duration) || 180, // Default 3 minutes
-        coverImage: coverFile ? `/upload/${coverFile.filename}` : "/upload/hello.png",
+        coverImage: coverFile ? `/upload/images/${coverFile.filename}` : "/upload/hello.png",
         audioUrl: `/upload/songs/${audioFile.filename}`,
         genre: genre ? genre.split(',').map((g: string) => g.trim()) : []
       });
 
-      await song.save();
+      const audioFilePath = path.join(process.cwd(), 'upload/songs', audioFile.filename);
+      
+      console.log("Saving song with coverImage:", song.coverImage);
+      console.log("Audio file path:", audioFilePath);
+      console.log("Audio file exists before save:", fs.existsSync(audioFilePath));
+      
+      try {
+        await song.save();
+        console.log("Song saved successfully to database");
+      } catch (saveError) {
+        console.error("Error saving song to database:", saveError);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to save song to database"
+        });
+      }
+      
+      // Verify file was actually saved
+      const fileExistsAfter = fs.existsSync(audioFilePath);
+      console.log("Audio file exists after save:", fileExistsAfter);
+      
+      if (!fileExistsAfter) {
+        console.error("CRITICAL: Audio file was not saved to disk!");
+        return res.status(500).json({
+          success: false,
+          message: "Audio file was not saved to disk"
+        });
+      }
       
       // Populate artist info for response
       await song.populate('artist', 'name bio');
@@ -79,7 +113,6 @@ export class SongController {
       const skip = (page - 1) * limit;
 
       const songs = await Song.find()
-        .populate('artist', 'name bio')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit);
@@ -88,15 +121,7 @@ export class SongController {
 
       res.status(200).json({
         success: true,
-        data: {
-          songs,
-          pagination: {
-            page,
-            limit,
-            total,
-            pages: Math.ceil(total / limit)
-          }
-        }
+        data: songs  // ← Return songs directly, not nested
       });
 
     } catch (error) {
@@ -137,16 +162,48 @@ export class SongController {
     }
   }
 
-  /**
-   * Update song metadata
-   */
   async updateSong(req: Request, res: Response) {
     try {
-      const { title, album, genre } = req.body;
+      const { title, album, genre, artist } = req.body;
+      
+      // Handle file upload for cover image
+      const files = req.files as MulterFiles;
+      const coverFile = files?.coverImage ? files.coverImage[0] : null;
+      
+      // Find or create artist if artist name is provided
+      let artistId;
+      if (artist) {
+        let artistDoc = await ArtistModel.findOne({ name: artist });
+        if (!artistDoc) {
+          artistDoc = new ArtistModel({ 
+            name: artist,
+            bio: `${artist} - Artist`
+          });
+          await artistDoc.save();
+        }
+        artistId = artistDoc._id;
+      }
+      
+      // Prepare update data
+      const updateData: any = {
+        title,
+        album,
+        genre: genre ? genre.split(',').map((g: string) => g.trim()) : undefined,
+      };
+      
+      // Add artist if provided
+      if (artistId) {
+        updateData.artist = artistId;
+      }
+      
+      // Add cover image if uploaded
+      if (coverFile) {
+        updateData.coverImage = `/upload/images/${coverFile.filename}`;
+      }
       
       const song = await Song.findByIdAndUpdate(
         req.params.id,
-        { title, album, genre: genre ? genre.split(',').map((g: string) => g.trim()) : undefined },
+        updateData,
         { new: true, runValidators: true }
       ).populate('artist', 'name bio');
 

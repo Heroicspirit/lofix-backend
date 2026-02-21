@@ -169,7 +169,7 @@ export class AuthController{
 
       // Search across both models
       const [songs, artists] = await Promise.all([
-        Song.find({ title: searchRegex }).populate('artist').limit(5),
+        Song.find({ title: searchRegex }).populate('artist', 'name bio').limit(5),
         ArtistModel.find({ name: searchRegex }).limit(5)
       ]);
 

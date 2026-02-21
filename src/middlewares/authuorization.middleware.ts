@@ -5,6 +5,10 @@ import { HttpError } from "../errors/http-error";
 import { UserRepository } from "../repositories/user.repository";
 import { IUser } from "../models/user.model";
 
+export interface AuthRequest extends Request {
+  user: IUser;
+}
+
 // Extend Express Request to include user
 declare global {
     namespace Express {

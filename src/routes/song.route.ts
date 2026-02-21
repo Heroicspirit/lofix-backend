@@ -6,39 +6,38 @@ import { authorizedMiddleware } from "../middlewares/authuorization.middleware";
 const router = Router();
 const songController = new SongController();
 
-/**
- * Song Routes - Complete CRUD operations for songs
- */
-
-// TEMPORARY: Add existing songs without authentication (for testing)
+// Add existing songs (testing)
 router.post("/add-existing", songController.addExistingSongs);
 
-// Upload a new song (with audio file and optional cover image)
-router.post("/upload", 
-  authorizedMiddleware, 
+// Upload new song (direct POST to /api/songs)
+router.post(
+  "/",
+  authorizedMiddleware,
   uploadSongFiles.fields([
-    { name: 'audioFile', maxCount: 1 },
-    { name: 'coverImage', maxCount: 1 }
-  ]), 
+    { name: "audioFile", maxCount: 1 },
+    { name: "coverImage", maxCount: 1 },
+  ]),
   songController.uploadSong
 );
 
-// Get all songs with pagination
+// Get all songs
 router.get("/", songController.getAllSongs);
 
-// Get song by ID
+// Get songs by artist (PLACE BEFORE /:id)
+router.get("/artist/:artistId", songController.getSongsByArtist);
+
+// Get song by ID (KEEP LAST)
 router.get("/:id", songController.getSongById);
 
-// Update song metadata
-router.put("/:id", authorizedMiddleware, songController.updateSong);
+// Update song
+router.put(
+  "/:id",
+  authorizedMiddleware,
+  uploadSongFiles.fields([{ name: "coverImage", maxCount: 1 }]),
+  songController.updateSong
+);
 
-// Delete a song
+// Delete song
 router.delete("/:id", authorizedMiddleware, songController.deleteSong);
-
-// Get songs by artist
-router.get("/artist/:artistId", songController.getSongsByArtist);
-
-
-router.get("/artist/:artistId", songController.getSongsByArtist);
 
 export default router;
