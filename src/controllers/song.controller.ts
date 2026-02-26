@@ -115,7 +115,8 @@ export class SongController {
       const songs = await Song.find()
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit);
+        .limit(limit)
+        .populate('artist', 'name bio');  // ← ADD THIS LINE
 
       const total = await Song.countDocuments();
 

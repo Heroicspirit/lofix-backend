@@ -7,15 +7,16 @@ import path from 'path';
 
 const router = Router();
 
-
+// Add routes that match frontend expectations
 router.get(
-  "/user/playlists",
+  "/playlists",
   authorizedMiddleware,
   async (req: Request, res: Response) => {
     try {
       const userId = (req as AuthRequest).user._id;
 
-      const playlists = await Playlist.find({ userId: userId });
+      const playlists = await Playlist.find({ userId })
+        .populate('songs', 'title artist coverImage album duration audioUrl');
 
       return res.status(200).json({
         success: true,
@@ -31,13 +32,8 @@ router.get(
   }
 );
 
-/*
-========================================
-CREATE PLAYLIST
-========================================
-*/
 router.post(
-  "/user/playlists",
+  "/playlists",
   authorizedMiddleware,
   async (req: Request, res: Response) => {
     try {
@@ -64,13 +60,8 @@ router.post(
   }
 );
 
-/*
-========================================
-GET SINGLE PLAYLIST
-========================================
-*/
 router.get(
-  "/user/playlists/:id",
+  "/playlists/:id",
   authorizedMiddleware,
   async (req: Request, res: Response) => {
     try {
@@ -99,18 +90,15 @@ router.get(
   }
 );
 
-/*
-========================================
-DELETE PLAYLIST
-========================================
-*/
-router.delete(
-  "/user/playlists/:id",
+router.put(
+  "/playlists/:id",
   authorizedMiddleware,
   async (req: Request, res: Response) => {
     try {
       const userId = (req as AuthRequest).user._id;
-      const playlist = await Playlist.findById(req.params.id);
+      const { name, description } = req.body;
+      
+      const playlist = await Playlist.findOne({ _id: req.params.id, userId });
       
       if (!playlist) {
         return res.status(404).json({
@@ -119,10 +107,38 @@ router.delete(
         });
       }
       
-      if (playlist.userId.toString() !== userId.toString()) {
-        return res.status(403).json({
+      if (name) playlist.name = name;
+      if (description !== undefined) playlist.description = description;
+      
+      await playlist.save();
+      
+      return res.status(200).json({
+        success: true,
+        data: playlist,
+        message: "Playlist updated successfully",
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update playlist",
+        error: error.message,
+      });
+    }
+  }
+);
+
+router.delete(
+  "/playlists/:id",
+  authorizedMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const userId = (req as AuthRequest).user._id;
+      const playlist = await Playlist.findOne({ _id: req.params.id, userId });
+      
+      if (!playlist) {
+        return res.status(404).json({
           success: false,
-          message: "Not allowed",
+          message: "Playlist not found",
         });
       }
       
@@ -142,19 +158,16 @@ router.delete(
   }
 );
 
-/*
-========================================
-GET SONGS IN PLAYLIST
-========================================
-*/
 router.get(
-  "/user/playlists/:id/songs",
+  "/playlists/:id/songs",
   authorizedMiddleware,
   async (req: Request, res: Response) => {
     try {
+      const { id } = req.params;
       const userId = (req as AuthRequest).user._id;
-      const playlist = await Playlist.findOne({ _id: req.params.id, userId })
-        .populate('songs', 'title artist duration album');
+      
+      const playlist = await Playlist.findOne({ _id: id, userId })
+        .populate('songs', 'title artist coverImage album duration audioUrl');
       
       if (!playlist) {
         return res.status(404).json({
@@ -163,19 +176,9 @@ router.get(
         });
       }
       
-      res.json({
+      return res.status(200).json({
         success: true,
-        data: playlist.songs.map((song: any) => ({
-          ...song,
-          id: song._id?.toString() || song.id,
-          title: song.title,
-          artist: song.artist,
-          duration: song.duration,
-          album: song.album,
-          coverImage: song.coverImage,
-          audioUrl: song.audioUrl,
-          genre: song.genre
-        })) as ISong[],
+        data: playlist.songs,
       });
     } catch (error: any) {
       return res.status(500).json({
@@ -187,13 +190,8 @@ router.get(
   }
 );
 
-/*
-========================================
-ADD SONG TO PLAYLIST
-========================================
-*/
 router.post(
-  "/user/playlists/:id/songs",
+  "/playlists/:id/songs",
   authorizedMiddleware,
   async (req: Request, res: Response) => {
     try {
@@ -243,13 +241,8 @@ router.post(
   }
 );
 
-/*
-========================================
-REMOVE SONG FROM PLAYLIST
-========================================
-*/
 router.delete(
-  "/user/playlists/:id/songs/:songId",
+  "/playlists/:id/songs/:songId",
   authorizedMiddleware,
   async (req: Request, res: Response) => {
     try {

@@ -26,13 +26,27 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use('/api/auth',authRouter);
-app.use('/api/admin/users',adminRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/admin/users', adminRouter);
 app.use('/api/songs', songRouter);
 app.use('/api/albums', albumRouter);
 app.use('/api', playlistRouter);
-app.use('/upload', express.static(path.join(process.cwd(), 'upload')));
-app.use('/images', express.static(path.join(process.cwd(), 'upload')));
+app.use('/upload', express.static(path.join(process.cwd(), 'upload'), {
+  maxAge: '1h',
+  etag: true,
+  lastModified: true,
+  setHeaders: (res, path) => {
+    if (path.endsWith('.mp3') || path.endsWith('.wav') || path.endsWith('.ogg')) {
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Accept-Ranges', 'bytes');
+    }
+  }
+}));
+app.use('/images', express.static(path.join(process.cwd(), 'upload'), {
+  maxAge: '1h',
+  etag: true,
+  lastModified: true
+}));
 
 app.get('/', (req: Request, res: Response) => {
     return res.status(200).json({ success: "true", message: "Welcome to the API" });
