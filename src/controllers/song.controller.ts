@@ -4,6 +4,8 @@ import { Song } from "../models/song.model";
 
 import { ArtistModel } from "../models/artist.model";
 
+import { UserModel, IUser } from "../models/user.model";
+
 import fs from "fs";
 
 import path from "path";
@@ -234,7 +236,7 @@ export class SongController {
 
         .limit(limit)
 
-        .populate('artist', 'name bio'); // Populate artist field
+        .populate('artist', 'name bio'); 
 
 
 
@@ -752,6 +754,144 @@ export class SongController {
 
     }
 
+  }
+
+  // FAVORITE SONGS CRUD OPERATIONS
+
+  async addToFavorites(req: Request, res: Response) {
+    try {
+      const { songId } = req.body;
+      
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not authenticated"
+        });
+      }
+      
+      const userId = req.user._id;
+
+      if (!songId) {
+        return res.status(400).json({
+          success: false,
+          message: "Song ID is required"
+        });
+      }
+
+      // Check if song exists
+      const song = await Song.findById(songId);
+      if (!song) {
+        return res.status(404).json({
+          success: false,
+          message: "Song not found"
+        });
+      }
+
+      // Add to user's favorites
+      await UserModel.findByIdAndUpdate(
+        userId,
+        { $addToSet: { favoriteSongs: songId } },
+        { new: true }
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Song added to favorites"
+      });
+
+    } catch (error) {
+      console.error("Add to favorites error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to add song to favorites"
+      });
+    }
+  }
+
+  async getFavorites(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not authenticated"
+        });
+      }
+      
+      const userId = req.user._id;
+      console.log('Getting favorites for user:', userId);
+
+      // Get user with populated favorite songs
+      const user = await UserModel.findById(userId)
+        .populate({
+          path: 'favoriteSongs',
+          populate: {
+            path: 'artist',
+            select: 'name bio'
+          }
+        });
+
+      if (!user) {
+        console.log('User not found:', userId);
+        return res.status(404).json({
+          success: false,
+          message: "User not found"
+        });
+      }
+
+      console.log('Found user with favorites:', user.favoriteSongs?.length || 0);
+      res.status(200).json({
+        success: true,
+        data: user.favoriteSongs || []
+      });
+
+    } catch (error) {
+      console.error("Get favorites error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to get favorite songs"
+      });
+    }
+  }
+
+  async removeFromFavorites(req: Request, res: Response) {
+    try {
+      const { songId } = req.params;
+      
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not authenticated"
+        });
+      }
+      
+      const userId = req.user._id;
+
+      if (!songId) {
+        return res.status(400).json({
+          success: false,
+          message: "Song ID is required"
+        });
+      }
+
+      // Remove from user's favorites
+      await UserModel.findByIdAndUpdate(
+        userId,
+        { $pull: { favoriteSongs: songId } },
+        { new: true }
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Song removed from favorites"
+      });
+
+    } catch (error) {
+      console.error("Remove from favorites error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to remove song from favorites"
+      });
+    }
   }
 
 }

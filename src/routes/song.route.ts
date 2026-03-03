@@ -26,6 +26,11 @@ router.get("/", songController.getAllSongs);
 // Get songs by artist (PLACE BEFORE /:id)
 router.get("/artist/:artistId", songController.getSongsByArtist);
 
+// Favorite songs CRUD routes (PLACE BEFORE /:id)
+router.post("/favorites", authorizedMiddleware, songController.addToFavorites);
+router.get("/favorites", authorizedMiddleware, songController.getFavorites);
+router.delete("/favorites/:songId", authorizedMiddleware, songController.removeFromFavorites);
+
 // Get song by ID (KEEP LAST)
 router.get("/:id", songController.getSongById);
 
