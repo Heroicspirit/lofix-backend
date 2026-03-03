@@ -1,6 +1,9 @@
 import { CreateUserDTO, LoginUserDto, UpdateUserDto } from "../dtos/user.dto";
 import { UserService } from "../services/user.service";
 import { Request, Response } from "express";
+import { Song } from "../models/song.model";
+import { ArtistModel } from "../models/artist.model";
+
 import z, { json, success } from "zod";
 let userService = new UserService();
 export class AuthController{
@@ -62,9 +65,11 @@ export class AuthController{
                 });
             }
 
-            // If a file was uploaded by Multer
+            // If a file was uploaded by Multer (handle both single file and array)
             if (req.file) {
                 parsedData.data.profilePicture = `/upload/${req.file.filename}`;
+            } else if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+                parsedData.data.profilePicture = `/upload/${req.files[0].filename}`;
             }
 
             const updatedUser = await userService.updateUser(userId, parsedData.data);
@@ -80,8 +85,10 @@ export class AuthController{
             return res.status(200).json({
                 success: true,
                 data: updatedUser,
-                // Now safe to access because of the null check above
-                filename: req.file ? req.file.filename : updatedUser.profilePicture,
+                // Handle both single file and array cases
+                filename: req.file ? req.file.filename : 
+                         (req.files && Array.isArray(req.files) && req.files.length > 0) ? req.files[0].filename : 
+                         updatedUser.profilePicture,
                 message: "User profile updated successfully"
             });
         } catch (error: any) {
@@ -147,4 +154,37 @@ export class AuthController{
             );
         }
     }
+    async search(req: Request, res: Response) {
+    try {
+      const { q } = req.query;
+
+      if (!q) {
+        return res.status(200).json({
+          success: true,
+          data: { songs: [], artists: [] } 
+        });
+      }
+
+      const searchRegex = new RegExp(q as string, 'i');
+
+      // Search across both models
+      const [songs, artists] = await Promise.all([
+        Song.find({ title: searchRegex }).populate('artist', 'name bio').limit(5),
+        ArtistModel.find({ name: searchRegex }).limit(5)
+      ]);
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          songs,
+          artists
+        }
+      });
+    } catch (error: any) {
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message || "Search failed" 
+      });
+    }
+  }
 }
