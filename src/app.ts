@@ -16,7 +16,7 @@ console.log(process.env.PORT);
 const app: Application = express();
 
 const corsOptions = {
-    origin: ['http://localhost:3000', 'http://localhost:3003', 'http://localhost:3005', 'http://192.168.1.67:5000'],
+    origin: ['http://localhost:3000', 'http://localhost:3003', 'http://localhost:3005', 'http://192.168.1.67:5000','http://10.151.153.194:5000'],
     optionsSuccessStatus: 200,
     credentials: true,
 };

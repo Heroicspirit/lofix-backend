@@ -258,7 +258,7 @@ router.delete(
         });
       }
       
-      playlist.songs = playlist.songs.filter(song => song.toString() !== songId);
+      playlist.songs = playlist.songs.filter(song => song.toString() !== songId) as any[];
       await playlist.save();
       
       res.json({

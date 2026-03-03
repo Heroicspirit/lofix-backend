@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { ISong } from "./song.model";
 
 export interface IPlaylist extends Document {
   name: string;
@@ -7,7 +8,7 @@ export interface IPlaylist extends Document {
   coverColor?: string;
   songCount: number;
   userId: mongoose.Types.ObjectId;
-  songs: mongoose.Types.ObjectId[];
+  songs: mongoose.Types.ObjectId[] | ISong[];
 }
 
 const PlaylistSchema: Schema = new Schema({
