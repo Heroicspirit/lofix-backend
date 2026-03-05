@@ -9,6 +9,8 @@ export interface ISong extends Document {
   coverImage: string;
   audioUrl: string;
   genre: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const SongSchema: Schema = new Schema({

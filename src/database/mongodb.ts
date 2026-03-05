@@ -7,7 +7,7 @@ export async function connectDatabase() {
         console.log("Database connected succesfully");
     }catch (error) {
         console.error("Database error:",error);
-        process.exit(1);
+        throw error;
     }
 }
 
@@ -17,6 +17,6 @@ export async function connectDatabaseTest(){
         console.log("Connected to MongoDB");
     } catch (error) {
         console.error("Database Error:", error);
-        process.exit(1); // Exit process with failure
+        throw error;
     }
 }
