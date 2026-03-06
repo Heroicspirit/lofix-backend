@@ -9,6 +9,8 @@ export interface IPlaylist extends Document {
   songCount: number;
   userId: mongoose.Types.ObjectId;
   songs: mongoose.Types.ObjectId[] | ISong[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const PlaylistSchema: Schema = new Schema({
