@@ -5,19 +5,18 @@ import Song, { ISong } from '../models/song.model';
 import Album, { IAlbum } from '../models/album.model';
 import Playlist, { IPlaylist } from '../models/playlist.model';
 
-// Test database setup
+
 beforeAll(async () => {
-  // Set test environment variables
+
   process.env.NODE_ENV = 'test';
   process.env.JWT_SECRET = 'test-jwt-secret-key';
-  process.env.PORT = '5001'; // Different port for testing
+  process.env.PORT = '5001';
   
-  // Connect to test database (you can use a separate test DB)
   const testDbUri = process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/lofix-test';
   await mongoose.connect(testDbUri);
 });
 
-// Cleanup after all tests
+
 afterAll(async () => {
   // Disconnect from database
   await mongoose.disconnect();
