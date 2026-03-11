@@ -1,16 +1,9 @@
 import { Request, Response } from "express";
-
 import { Song } from "../models/song.model";
-
 import { ArtistModel } from "../models/artist.model";
-
 import { UserModel, IUser } from "../models/user.model";
-
 import fs from "fs";
-
 import path from "path";
-
-
 
 interface MulterFiles {
 
@@ -22,261 +15,130 @@ interface MulterFiles {
 
 export class SongController {
 
-  /**
-
-   * Upload a new song with metadata
-
-   */
-
   async uploadSong(req: Request, res: Response) {
-
     try {
-
       console.log("=== SONG UPLOAD START ===");
-
       const { title, artist, album, genre, duration } = req.body;
-
-      
-
-      // Check if files were uploaded
-
       if (!req.files || !(req.files as MulterFiles).audioFile) {
-
         console.log("ERROR: No audio file received");
-
         return res.status(400).json({ 
-
           success: false, 
-
           message: "Audio file is required" 
-
         });
-
       }
 
 
 
       const files = req.files as MulterFiles;
-
       const audioFile = files.audioFile[0];
-
       const coverFile = files.coverImage ? files.coverImage[0] : null;
-
-
-
       console.log("Upload files received:");
-
       console.log("- Audio file:", audioFile?.filename);
-
       console.log("- Audio file size:", audioFile?.size);
-
       console.log("=== SONG UPLOAD PROCESSING ===");
 
 
-
-      // Find or create artist
-
       let artistDoc = await ArtistModel.findOne({ name: artist });
-
       if (!artistDoc) {
-
         artistDoc = new ArtistModel({ 
-
           name: artist,
-
           bio: `${artist} - Artist`
-
         });
-
         await artistDoc.save();
-
       }
 
 
 
-      // Create song document
 
       const song = new Song({
-
         title,
-
         artist: artistDoc._id,
-
         album: album || "Single",
-
         duration: parseInt(duration) || 180, // Default 3 minutes
-
         coverImage: coverFile ? `/upload/images/${coverFile.filename}` : "/upload/hello.png",
-
         audioUrl: `/upload/songs/${audioFile.filename}`,
-
         genre: genre ? genre.split(',').map((g: string) => g.trim()) : []
-
       });
 
 
 
       const audioFilePath = path.join(process.cwd(), 'upload/songs', audioFile.filename);
-
-      
-
       console.log("Saving song with coverImage:", song.coverImage);
-
       console.log("Audio file path:", audioFilePath);
-
       console.log("Audio file exists before save:", fs.existsSync(audioFilePath));
 
-      
-
       try {
-
         await song.save();
-
         console.log("Song saved successfully to database");
-
       } catch (saveError) {
-
         console.error("Error saving song to database:", saveError);
-
         return res.status(500).json({
-
           success: false,
-
           message: "Failed to save song to database"
-
         });
-
       }
-
-      
-
-      // Verify file was actually saved
-
       const fileExistsAfter = fs.existsSync(audioFilePath);
 
       console.log("Audio file exists after save:", fileExistsAfter);
-
-      
-
       if (!fileExistsAfter) {
-
         console.error("CRITICAL: Audio file was not saved to disk!");
-
         return res.status(500).json({
-
           success: false,
-
           message: "Audio file was not saved to disk"
-
         });
-
       }
 
-      
-
-      // Populate artist info for response
 
       await song.populate('artist', 'name bio');
-
-
-
       res.status(201).json({
-
         success: true,
-
         message: "Song uploaded successfully",
-
         data: song
-
       });
 
 
 
     } catch (error) {
-
       console.error("Song upload error:", error);
-
       res.status(500).json({ 
-
         success: false, 
-
         message: "Song upload failed" 
-
       });
-
     }
-
   }
 
 
-
-  /**
-
-   * Get all songs with pagination
-
-   */
-
   async getAllSongs(req: Request, res: Response) {
-
     try {
-
       const page = parseInt(req.query.page as string) || 1;
-
       const limit = parseInt(req.query.limit as string) || 20;
-
       const skip = (page - 1) * limit;
 
-
-
       const songs = await Song.find()
-
         .sort({ createdAt: -1 })
-
         .skip(skip)
-
         .limit(limit)
-
         .populate('artist', 'name bio'); 
 
 
 
       const total = await Song.countDocuments();
-
-
-
       res.status(200).json({
-
         success: true,
-
-        data: songs  // ← Return songs directly, not nested
-
+        data: songs 
       });
 
 
 
     } catch (error) {
-
       console.error("Get songs error:", error);
-
       res.status(500).json({ 
-
         success: false, 
-
         message: "Failed to fetch songs" 
-
       });
-
     }
-
   }
 
-
-
-  /**
-
-   * Get song by ID
-
-   */
 
   async getSongById(req: Request, res: Response) {
 
@@ -386,9 +248,6 @@ export class SongController {
 
       };
 
-      
-
-      // Add artist if provided
 
       if (artistId) {
 
@@ -398,7 +257,7 @@ export class SongController {
 
       
 
-      // Add cover image if uploaded
+
 
       if (coverFile) {
 

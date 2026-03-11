@@ -10,7 +10,7 @@ export class SearchController {
 
       let results: any = {};
 
-      // Logic to filter based on category
+
       if (type === 'songs' || type === 'all') {
         results.songs = await Song.find({ title: searchRegex }).limit(5);
       }
