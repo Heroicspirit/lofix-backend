@@ -18,13 +18,13 @@ beforeAll(async () => {
 
 
 afterAll(async () => {
-  // Disconnect from database
+
   await mongoose.disconnect();
 });
 
-// Cleanup between tests
+
 afterEach(async () => {
-  // Clear all collections
+
   const collections = mongoose.connection.collections;
   for (const key in collections) {
     const collection = collections[key];

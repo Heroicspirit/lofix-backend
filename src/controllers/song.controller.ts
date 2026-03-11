@@ -254,13 +254,7 @@ export class SongController {
         updateData.artist = artistId;
 
       }
-
-      
-
-
-
       if (coverFile) {
-
         updateData.coverImage = `/upload/images/${coverFile.filename}`;
 
       }
